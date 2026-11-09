@@ -24,7 +24,28 @@ export const Colors = {
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+/**
+ * Brand colors from Figma. Mirrors the CSS variables in `global.css`, which native
+ * cannot read. The Figma Home design is light-only, so these are not themed per scheme.
+ */
+export const Palette = {
+  purple500: '#8e2edf',
+  purple700: '#642ad0',
+  purple800: '#4a27c9',
+  progressFill: '#5129cb',
+  goldFill: '#fff3c7',
+  goldText: '#c18300',
+  greenFill: '#e4f6e7',
+  greenText: '#00aa34',
+  neutralText: '#6c757e',
+  neutralChip: 'rgba(232, 236, 239, 0.54)',
+  neutralTrack: '#efefef',
+  screenBackground: '#f7f9f8',
+  white: '#ffffff',
+  black: '#000000',
+} as const;
+
+export type ThemeColor =keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
   ios: {

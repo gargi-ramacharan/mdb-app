@@ -1,98 +1,166 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { FEATURED_CARD_WIDTH, FeaturedSettlementCard, type FeaturedSettlement } from '@/components/featured-settlement-card';
+import { HomeHeader } from '@/components/home-header';
+import { SettlementRow, type Settlement } from '@/components/settlement-row';
+import { Chip } from '@/components/ui/chip';
+import { UpgradeBanner } from '@/components/upgrade-banner';
+import { BottomTabInset, MaxContentWidth, Palette, Spacing } from '@/constants/theme';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+// Placeholder data matching the Figma design until a real settlements API exists.
+const FEATURED: FeaturedSettlement[] = [
+  { id: 'f1', amount: '$20-$50', dueInDays: 5, claimsFilled: 1274, claimsTotal: 12000 },
+  { id: 'f2', amount: '$20-$50', dueInDays: 5, claimsFilled: 1274, claimsTotal: 12000 },
+];
+
+const SETTLEMENTS: Settlement[] = [
+  { id: 's1', amount: '$3000+', dueInDays: 5, badge: { label: 'No proof', tone: 'green' } },
+  { id: 's2', amount: '$1000+', dueInDays: 567, badge: { label: 'Uncapped', tone: 'gold' } },
+  { id: 's3', amount: '$1000+', dueInDays: 567, badge: { label: 'Uncapped', tone: 'gold' } },
+  { id: 's4', amount: '$1000+', dueInDays: 567, badge: { label: 'Uncapped', tone: 'gold' } },
+];
+
+const FILTERS = ['All', 'Upcoming', 'Privacy', 'False Ads', 'Overbilling'];
+
+function LegendItem({ label, tone }: { label: string; tone: 'green' | 'gold' }) {
+  const isGreen = tone === 'green';
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <View style={styles.legendItem}>
+      <View style={[styles.legendDot, { backgroundColor: isGreen ? Palette.greenFill : Palette.goldFill }]}>
+        <Image
+          source={isGreen ? require('@/assets/images/home/check.svg') : require('@/assets/images/home/star.svg')}
+          style={isGreen ? styles.legendCheck : styles.legendStar}
+          contentFit="contain"
+        />
+      </View>
+      <Text style={styles.legendLabel}>{label}</Text>
+    </View>
   );
 }
 
 export default function HomeScreen() {
+  const [filter, setFilter] = useState(FILTERS[0]);
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <View style={styles.screen}>
+      <HomeHeader />
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Featured</Text>
+          <View style={styles.legend}>
+            <LegendItem label="No Proof" tone="green" />
+            <LegendItem label="Uncapped" tone="gold" />
+          </View>
+        </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+        {/* Bleeds past the page padding so the next card peeks in, as in the design. */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={FEATURED_CARD_WIDTH + 17}
+          decelerationRate="fast"
+          style={styles.carousel}
+          contentContainerStyle={styles.carouselContent}>
+          {FEATURED.map((item) => (
+            <FeaturedSettlementCard key={item.id} settlement={item} />
+          ))}
+        </ScrollView>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+        <UpgradeBanner />
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.carousel}
+          contentContainerStyle={styles.chips}>
+          {FILTERS.map((name) => (
+            <Chip key={name} label={name} selected={filter === name} onPress={() => setFilter(name)} />
+          ))}
+        </ScrollView>
+
+        <View style={styles.list}>
+          {SETTLEMENTS.map((item) => (
+            <SettlementRow key={item.id} settlement={item} />
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
+const PAGE_PADDING = 20;
+
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: Palette.screenBackground,
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
+  content: {
+    alignSelf: 'center',
+    width: '100%',
     maxWidth: MaxContentWidth,
+    paddingHorizontal: PAGE_PADDING,
+    paddingTop: 24,
+    paddingBottom: BottomTabInset + Spacing.four,
+    gap: 17,
   },
-  heroSection: {
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    lineHeight: 28,
+    fontWeight: '700',
+    color: Palette.black,
+  },
+  legend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
+  legendDot: {
+    width: 23,
+    height: 23,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
   },
-  title: {
-    textAlign: 'center',
+  legendCheck: { width: 13, height: 13 },
+  legendStar: { width: 15, height: 15 },
+  legendLabel: {
+    fontSize: 15,
+    lineHeight: 28,
+    fontWeight: '600',
+    color: 'rgba(0, 0, 0, 0.46)',
   },
-  code: {
-    textTransform: 'uppercase',
+  // Negative margin cancels the page padding so rows can scroll edge to edge.
+  carousel: {
+    marginHorizontal: -PAGE_PADDING,
+    flexGrow: 0,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  carouselContent: {
+    paddingHorizontal: PAGE_PADDING,
+    paddingVertical: 4, // room for the card shadow
+    gap: 17,
+  },
+  chips: {
+    paddingHorizontal: PAGE_PADDING,
+    gap: 6,
+  },
+  list: {
+    gap: 17,
   },
 });

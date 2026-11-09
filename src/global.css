@@ -6,4 +6,18 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
+
+  /* Brand palette from Figma (MDB Mode Mobile). Mirrored in `Palette` in constants/theme.ts. */
+  --purple-500: #8e2edf;
+  --purple-700: #642ad0;
+  --purple-800: #4a27c9;
+  --progress-fill: #5129cb;
+  --gold-fill: #fff3c7;
+  --gold-text: #c18300;
+  --green-fill: #e4f6e7;
+  --green-text: #00aa34;
+  --neutral-text: #6c757e;
+  --neutral-chip: rgba(232, 236, 239, 0.54);
+  --neutral-track: #efefef;
+  --screen-background: #f7f9f8;
 }
