@@ -1,26 +1,19 @@
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { FEATURED_CARD_WIDTH, FeaturedSettlementCard, type FeaturedSettlement } from '@/components/featured-settlement-card';
+import { FeaturedSettlementCard, useFeaturedCardWidth } from '@/components/featured-settlement-card';
 import { HomeHeader } from '@/components/home-header';
 import { SettlementRow, type Settlement } from '@/components/settlement-row';
 import { Chip } from '@/components/ui/chip';
 import { UpgradeBanner } from '@/components/upgrade-banner';
-import { BottomTabInset, MaxContentWidth, Palette, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Palette, Spacing } from '@/constants/theme';
+import { FEATURED_SETTLEMENTS, SETTLEMENTS } from '@/data/placeholder';
 
-// Placeholder data matching the Figma design until a real settlements API exists.
-const FEATURED: FeaturedSettlement[] = [
-  { id: 'f1', amount: '$20-$50', dueInDays: 5, claimsFilled: 1274, claimsTotal: 12000 },
-  { id: 'f2', amount: '$20-$50', dueInDays: 5, claimsFilled: 1274, claimsTotal: 12000 },
-];
-
-const SETTLEMENTS: Settlement[] = [
-  { id: 's1', amount: '$3000+', dueInDays: 5, badge: { label: 'No proof', tone: 'green' } },
-  { id: 's2', amount: '$1000+', dueInDays: 567, badge: { label: 'Uncapped', tone: 'gold' } },
-  { id: 's3', amount: '$1000+', dueInDays: 567, badge: { label: 'Uncapped', tone: 'gold' } },
-  { id: 's4', amount: '$1000+', dueInDays: 567, badge: { label: 'Uncapped', tone: 'gold' } },
-];
+function openSettlement({ id }: Settlement) {
+  router.push({ pathname: '/settlement/[id]', params: { id } });
+}
 
 const FILTERS = ['All', 'Upcoming', 'Privacy', 'False Ads', 'Overbilling'];
 
@@ -42,6 +35,7 @@ function LegendItem({ label, tone }: { label: string; tone: 'green' | 'gold' }) 
 
 export default function HomeScreen() {
   const [filter, setFilter] = useState(FILTERS[0]);
+  const cardWidth = useFeaturedCardWidth();
 
   return (
     <View style={styles.screen}>
@@ -62,12 +56,12 @@ export default function HomeScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          snapToInterval={FEATURED_CARD_WIDTH + 17}
+          snapToInterval={cardWidth + CARD_GAP}
           decelerationRate="fast"
-          style={styles.carousel}
+          style={[styles.carousel, styles.featuredCarousel]}
           contentContainerStyle={styles.carouselContent}>
-          {FEATURED.map((item) => (
-            <FeaturedSettlementCard key={item.id} settlement={item} />
+          {FEATURED_SETTLEMENTS.map((item) => (
+            <FeaturedSettlementCard key={item.id} settlement={item} width={cardWidth} onClaim={openSettlement} />
           ))}
         </ScrollView>
 
@@ -85,7 +79,7 @@ export default function HomeScreen() {
 
         <View style={styles.list}>
           {SETTLEMENTS.map((item) => (
-            <SettlementRow key={item.id} settlement={item} />
+            <SettlementRow key={item.id} settlement={item} onPress={openSettlement} onClaim={openSettlement} />
           ))}
         </View>
       </ScrollView>
@@ -94,6 +88,7 @@ export default function HomeScreen() {
 }
 
 const PAGE_PADDING = 20;
+const CARD_GAP = 17;
 
 const styles = StyleSheet.create({
   screen: {
@@ -105,15 +100,15 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     paddingHorizontal: PAGE_PADDING,
-    paddingTop: 24,
-    paddingBottom: BottomTabInset + Spacing.four,
-    gap: 17,
+    paddingTop: 18, // Figma: header bottom (129) to "Featured" (147)
+    paddingBottom: Spacing.four,
+    gap: 16, // Figma: 16 between the cards, banner, chips and list
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 9, // 16 gap + 9 = the 25 Figma puts between the title row and the cards
   },
   sectionTitle: {
     fontSize: 24,
@@ -151,10 +146,15 @@ const styles = StyleSheet.create({
     marginHorizontal: -PAGE_PADDING,
     flexGrow: 0,
   },
+  // The cards' scroll view pads 4px top/bottom so their shadow isn't clipped; cancel it out so
+  // the spacing around the cards still matches the design.
+  featuredCarousel: {
+    marginVertical: -4,
+  },
   carouselContent: {
     paddingHorizontal: PAGE_PADDING,
     paddingVertical: 4, // room for the card shadow
-    gap: 17,
+    gap: CARD_GAP,
   },
   chips: {
     paddingHorizontal: PAGE_PADDING,

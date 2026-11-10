@@ -30,6 +30,7 @@ export const Colors = {
  */
 export const Palette = {
   purple500: '#8e2edf',
+  purple600: '#7e2dd8',
   purple700: '#642ad0',
   purple800: '#4a27c9',
   progressFill: '#5129cb',
@@ -41,6 +42,25 @@ export const Palette = {
   neutralChip: 'rgba(232, 236, 239, 0.54)',
   neutralTrack: '#efefef',
   screenBackground: '#f7f9f8',
+  tabInactive: '#7d7d7d',
+  tabBorder: '#848484',
+  mutedText: '#737e86',
+  captionText: '#6a757e',
+  secondaryFill: '#e7ecee',
+  infoFill: '#f1f2f6',
+  linkBlue: '#027fff',
+  divider: '#dfe3e6',
+  errorText: '#c0392b',
+  successFill: '#00b451',
+  sectionText: '#555970',
+  sectionTextMuted: 'rgba(85, 89, 112, 0.59)',
+  modalFill: 'rgba(249, 249, 249, 0.78)',
+  modalButton: 'rgba(172, 172, 172, 0.52)',
+  scrim: 'rgba(0, 0, 0, 0.19)',
+  warningFill: '#ffad10',
+  dangerFill: '#fd0400',
+  subtleText: 'rgba(0, 0, 0, 0.42)',
+  countText: 'rgba(0, 0, 0, 0.56)',
   white: '#ffffff',
   black: '#000000',
 } as const;
@@ -82,5 +102,4 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;

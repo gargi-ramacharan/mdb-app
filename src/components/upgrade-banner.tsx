@@ -1,14 +1,11 @@
-import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
+import { purpleGradient } from '@/constants/gradients';
 import { Palette } from '@/constants/theme';
 
-// RN 0.88 supports CSS gradients through `experimental_backgroundImage`. This avoids adding a
-// gradient package. `backgroundColor` is the fallback where the gradient is not supported.
-const gradient = {
-  backgroundColor: Palette.purple800,
-  experimental_backgroundImage: `linear-gradient(106deg, ${Palette.purple800} 0.65%, ${Palette.purple500} 97.4%)`,
-} as ViewStyle;
+// Figma angle for this banner.
+const gradient = purpleGradient(105.84);
 
 export function UpgradeBanner({ onUpgrade }: { onUpgrade?: () => void }) {
   return (
@@ -28,17 +25,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 22,
-    paddingVertical: 29,
+    // Figma's title box is 12px tall (the text overflows it). 22px line height + 25px padding keeps
+    // the banner at the designed ~117px without clipping the 20px title.
+    paddingVertical: 25,
     borderRadius: 15,
     overflow: 'hidden',
   },
   copy: {
     width: 196,
-    gap: 10,
+    gap: 8,
   },
   title: {
     fontSize: 20,
-    lineHeight: 24,
+    lineHeight: 22,
     fontWeight: '700',
     color: Palette.white,
   },

@@ -15,7 +15,11 @@ export function Chip({ label, selected = false, onPress }: ChipProps) {
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
-      style={[styles.chip, { backgroundColor: selected ? Palette.neutralText : Palette.neutralChip }]}>
+      style={[
+        styles.chip,
+        // Figma: the selected chip is 2px wider on each side than the others.
+        { backgroundColor: selected ? Palette.neutralText : Palette.neutralChip, paddingHorizontal: selected ? 18 : 16 },
+      ]}>
       <Text style={[styles.label, { color: selected ? Palette.white : Palette.neutralText }]}>{label}</Text>
     </Pressable>
   );
@@ -24,7 +28,6 @@ export function Chip({ label, selected = false, onPress }: ChipProps) {
 const styles = StyleSheet.create({
   chip: {
     height: 41,
-    paddingHorizontal: 17,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
