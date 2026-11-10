@@ -1,13 +1,21 @@
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { formatDue, settlementThumb, type Settlement } from '@/components/settlement-row';
+import { formatDue, type Settlement } from '@/components/settlement-row';
+import { BrandAvatar } from '@/components/ui/brand-avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ProgressBar } from '@/components/ui/progress-bar';
-import { Palette } from '@/constants/theme';
+import { MaxContentWidth, Palette } from '@/constants/theme';
 
-export const FEATURED_CARD_WIDTH = 375;
+/** Cards take 85% of the screen (375 of 440 in Figma) so the next card peeks in from the right. */
+const FEATURED_CARD_WIDTH_RATIO = 0.85;
+
+export function useFeaturedCardWidth() {
+  const { width } = useWindowDimensions();
+  // Home content is capped at MaxContentWidth, so the ratio is taken from the capped width.
+  return Math.round(Math.min(width, MaxContentWidth) * FEATURED_CARD_WIDTH_RATIO);
+}
 
 export type FeaturedSettlement = Settlement & {
   claimsFilled: number;
@@ -16,17 +24,18 @@ export type FeaturedSettlement = Settlement & {
 
 type Props = {
   settlement: FeaturedSettlement;
+  width: number;
   onClaim?: (settlement: Settlement) => void;
 };
 
 /** Larger card used in the horizontal "Featured" carousel: shows claim progress too. */
-export function FeaturedSettlementCard({ settlement, onClaim }: Props) {
+export function FeaturedSettlementCard({ settlement, width, onClaim }: Props) {
   const { claimsFilled, claimsTotal } = settlement;
 
   return (
-    <Card style={styles.card}>
+    <Card style={[styles.card, { width }]}>
       <View style={styles.topRow}>
-        <Image source={settlementThumb} style={styles.thumb} contentFit="cover" />
+        <BrandAvatar name={settlement.company} />
 
         <View style={styles.details}>
           <View style={styles.titleLine}>
@@ -57,7 +66,6 @@ export function FeaturedSettlementCard({ settlement, onClaim }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    width: FEATURED_CARD_WIDTH,
     height: 132,
     paddingHorizontal: 23,
     paddingTop: 22,
@@ -67,11 +75,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 11,
-  },
-  thumb: {
-    width: 45,
-    height: 45,
-    borderRadius: 5,
   },
   details: {
     flex: 1,

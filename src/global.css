@@ -9,6 +9,7 @@
 
   /* Brand palette from Figma (MDB Mode Mobile). Mirrored in `Palette` in constants/theme.ts. */
   --purple-500: #8e2edf;
+  --purple-600: #7e2dd8;
   --purple-700: #642ad0;
   --purple-800: #4a27c9;
   --progress-fill: #5129cb;
@@ -20,4 +21,29 @@
   --neutral-chip: rgba(232, 236, 239, 0.54);
   --neutral-track: #efefef;
   --screen-background: #f7f9f8;
+  --tab-inactive: #7d7d7d;
+  --tab-border: #848484;
+
+  /* Settlement Details */
+  --muted-text: #737e86;
+  --caption-text: #6a757e;
+  --secondary-fill: #e7ecee;
+  --info-fill: #f1f2f6;
+  --link-blue: #027fff;
+  --divider: #dfe3e6;
+  --error-text: #c0392b;
+
+  /* Wallet */
+  --success-fill: #00b451;
+  --section-text: #555970;
+  --section-text-muted: rgba(85, 89, 112, 0.59);
+  --modal-fill: rgba(249, 249, 249, 0.78);
+  --modal-button: rgba(172, 172, 172, 0.52);
+  --scrim: rgba(0, 0, 0, 0.19);
+
+  /* Forms */
+  --warning-fill: #ffad10;
+  --danger-fill: #fd0400;
+  --subtle-text: rgba(0, 0, 0, 0.42);
+  --count-text: rgba(0, 0, 0, 0.56);
 }
