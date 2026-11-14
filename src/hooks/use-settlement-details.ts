@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { fetchSettlementDetails, type SettlementDetails } from '@/data/placeholder';
+import type { SettlementDetails } from '@/data/placeholder';
+import { fetchSettlementDetails } from '@/lib/api';
 
 export type SettlementDetailsState =
   | { status: 'loading' }

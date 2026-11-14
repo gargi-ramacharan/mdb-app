@@ -55,7 +55,7 @@ export function FeaturedSettlementCard({ settlement, width, onClaim }: Props) {
       </View>
 
       <View style={styles.progress}>
-        <ProgressBar progress={claimsFilled / claimsTotal} />
+        <ProgressBar progress={claimsTotal > 0 ? claimsFilled / claimsTotal : 0} />
         <Text style={styles.caption}>
           {claimsFilled} out of {claimsTotal} claims filled 🎉
         </Text>

@@ -1,21 +1,23 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { DevDataToggle } from '@/components/dev-data-toggle';
 import { FeaturedSettlementCard, useFeaturedCardWidth } from '@/components/featured-settlement-card';
 import { HomeHeader } from '@/components/home-header';
 import { SettlementRow, type Settlement } from '@/components/settlement-row';
+import { StateMessage } from '@/components/state-message';
 import { Chip } from '@/components/ui/chip';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { MaxContentWidth, Palette, Spacing } from '@/constants/theme';
-import { FEATURED_SETTLEMENTS, SETTLEMENTS } from '@/data/placeholder';
+import { useSettlements } from '@/hooks/use-settlements';
+import type { DataSource } from '@/lib/api';
+import { HOME_FILTERS, filterSettlements, type HomeFilter } from '@/utils/settlements';
 
 function openSettlement({ id }: Settlement) {
   router.push({ pathname: '/settlement/[id]', params: { id } });
 }
-
-const FILTERS = ['All', 'Upcoming', 'Privacy', 'False Ads', 'Overbilling'];
 
 function LegendItem({ label, tone }: { label: string; tone: 'green' | 'gold' }) {
   const isGreen = tone === 'green';
@@ -34,8 +36,13 @@ function LegendItem({ label, tone }: { label: string; tone: 'green' | 'gold' }) 
 }
 
 export default function HomeScreen() {
-  const [filter, setFilter] = useState(FILTERS[0]);
+  const [source, setSource] = useState<DataSource>('live');
+  const [filter, setFilter] = useState<HomeFilter>('All');
   const cardWidth = useFeaturedCardWidth();
+  const { state, retry } = useSettlements(source);
+
+  const featured = state.status === 'ready' ? state.featured : [];
+  const visible = state.status === 'ready' ? filterSettlements(state.settlements, filter) : [];
 
   return (
     <View style={styles.screen}>
@@ -44,26 +51,30 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured</Text>
-          <View style={styles.legend}>
-            <LegendItem label="No Proof" tone="green" />
-            <LegendItem label="Uncapped" tone="gold" />
-          </View>
-        </View>
+        {featured.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Featured</Text>
+              <View style={styles.legend}>
+                <LegendItem label="No Proof" tone="green" />
+                <LegendItem label="Uncapped" tone="gold" />
+              </View>
+            </View>
 
-        {/* Bleeds past the page padding so the next card peeks in, as in the design. */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={cardWidth + CARD_GAP}
-          decelerationRate="fast"
-          style={[styles.carousel, styles.featuredCarousel]}
-          contentContainerStyle={styles.carouselContent}>
-          {FEATURED_SETTLEMENTS.map((item) => (
-            <FeaturedSettlementCard key={item.id} settlement={item} width={cardWidth} onClaim={openSettlement} />
-          ))}
-        </ScrollView>
+            {/* Bleeds past the page padding so the next card peeks in, as in the design. */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={cardWidth + CARD_GAP}
+              decelerationRate="fast"
+              style={[styles.carousel, styles.featuredCarousel]}
+              contentContainerStyle={styles.carouselContent}>
+              {featured.map((item) => (
+                <FeaturedSettlementCard key={item.id} settlement={item} width={cardWidth} onClaim={openSettlement} />
+              ))}
+            </ScrollView>
+          </>
+        )}
 
         <UpgradeBanner />
 
@@ -72,16 +83,46 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           style={styles.carousel}
           contentContainerStyle={styles.chips}>
-          {FILTERS.map((name) => (
+          {HOME_FILTERS.map((name) => (
             <Chip key={name} label={name} selected={filter === name} onPress={() => setFilter(name)} />
           ))}
         </ScrollView>
 
-        <View style={styles.list}>
-          {SETTLEMENTS.map((item) => (
-            <SettlementRow key={item.id} settlement={item} onPress={openSettlement} onClaim={openSettlement} />
-          ))}
-        </View>
+        {state.status === 'loading' && (
+          <View style={styles.statePadding}>
+            <ActivityIndicator size="large" color={Palette.purple600} accessibilityLabel="Loading settlements" />
+          </View>
+        )}
+
+        {state.status === 'error' && (
+          <View style={styles.stateBox}>
+            <StateMessage
+              tone="error"
+              title="Couldn’t load settlements"
+              message="Check your connection and try again."
+              action={{ label: 'Try again', onPress: retry }}
+            />
+          </View>
+        )}
+
+        {state.status === 'ready' && visible.length === 0 && (
+          <View style={styles.stateBox}>
+            <StateMessage
+              title={filter === 'All' ? 'No settlements yet' : 'No settlements match'}
+              message={filter === 'All' ? 'New settlements will show up here.' : 'Try a different filter.'}
+            />
+          </View>
+        )}
+
+        {visible.length > 0 && (
+          <View style={styles.list}>
+            {visible.map((item) => (
+              <SettlementRow key={item.id} settlement={item} onPress={openSettlement} onClaim={openSettlement} />
+            ))}
+          </View>
+        )}
+
+        <DevDataToggle value={source} onChange={setSource} />
       </ScrollView>
     </View>
   );
@@ -162,5 +203,13 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 17,
+  },
+  statePadding: {
+    paddingVertical: 48,
+    alignItems: 'center',
+  },
+  // StateMessage is flex: 1 (built for full screens); give it a fixed box inside the scroll view.
+  stateBox: {
+    height: 220,
   },
 });

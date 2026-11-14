@@ -7,8 +7,8 @@ import { HomeHeader } from '@/components/home-header';
 import { PayoutCard } from '@/components/payout-card';
 import { InfoModal } from '@/components/ui/info-modal';
 import { MaxContentWidth, Palette, Spacing } from '@/constants/theme';
-import type { PlaceholderSource } from '@/data/placeholder';
 import { useClaims } from '@/hooks/use-claims';
+import type { DataSource } from '@/lib/api';
 import { formatCurrency, splitClaims, summarizeClaims } from '@/utils/claims';
 
 const INFO_MESSAGE = [
@@ -17,7 +17,7 @@ const INFO_MESSAGE = [
 ];
 
 export default function WalletScreen() {
-  const [source, setSource] = useState<PlaceholderSource>('sample');
+  const [source, setSource] = useState<DataSource>('live');
   const [infoVisible, setInfoVisible] = useState(false);
   const { state, retry } = useClaims(source);
 

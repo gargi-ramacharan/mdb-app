@@ -8,12 +8,12 @@ import { StateMessage } from '@/components/state-message';
 import { TitleBar } from '@/components/title-bar';
 import { Chip } from '@/components/ui/chip';
 import { MaxContentWidth, Palette, Spacing } from '@/constants/theme';
-import type { PlaceholderSource } from '@/data/placeholder';
 import { useForms } from '@/hooks/use-forms';
+import type { DataSource } from '@/lib/api';
 import { FORM_FILTERS, filterForms, formatFileCount, type FormFilterLabel } from '@/utils/forms';
 
 export default function FormsScreen() {
-  const [source, setSource] = useState<PlaceholderSource>('sample');
+  const [source, setSource] = useState<DataSource>('live');
   // `null` = no chip selected = show every form. Tapping the selected chip again clears it.
   const [filter, setFilter] = useState<FormFilterLabel | null>(null);
   const { state, retry } = useForms(source);

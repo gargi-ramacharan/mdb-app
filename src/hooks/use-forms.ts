@@ -1,11 +1,12 @@
-import { fetchForms, type Form, type PlaceholderSource } from '@/data/placeholder';
-import { useFetched } from '@/hooks/use-fetched';
+import type { Form } from '@/data/placeholder';
+import { useLiveList } from '@/hooks/use-live-list';
+import { fetchForms, type DataSource } from '@/lib/api';
 
 export type FormsState = { status: 'loading' } | { status: 'error' } | { status: 'ready'; forms: Form[] };
 
-/** Loads the saved forms and exposes loading / error / ready, plus `retry`. */
-export function useForms(source: PlaceholderSource) {
-  const { state, retry } = useFetched(fetchForms, source);
+/** The user's forms (live from Supabase, with realtime updates) as loading / error / ready, plus `retry`. */
+export function useForms(source: DataSource) {
+  const { state, retry } = useLiveList('forms', source, fetchForms);
 
   const formsState: FormsState = state.status === 'ready' ? { status: 'ready', forms: state.data } : state;
 

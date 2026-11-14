@@ -3,6 +3,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+// Importing this module starts the anonymous sign-in on app launch.
+import '@/lib/supabase';
 
 SplashScreen.preventAutoHideAsync();
 

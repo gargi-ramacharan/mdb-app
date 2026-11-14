@@ -13,6 +13,8 @@ export type Settlement = {
   amount: string;
   dueInDays: number;
   badge?: { label: string; tone: BadgeTone };
+  /** Used by the Home filter chips (Privacy, False Ads, Overbilling). */
+  category?: string;
 };
 
 export function formatDue(days: number) {

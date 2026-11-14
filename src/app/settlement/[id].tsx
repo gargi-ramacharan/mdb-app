@@ -1,5 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/screen-header';
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { MaxContentWidth, Palette } from '@/constants/theme';
 import type { SettlementDetails } from '@/data/placeholder';
 import { useSettlementDetails } from '@/hooks/use-settlement-details';
+import { startClaim } from '@/lib/claims';
 
 export default function SettlementDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,6 +47,24 @@ export default function SettlementDetailsScreen() {
 
 function Ready({ settlement }: { settlement: SettlementDetails }) {
   const insets = useSafeAreaInsets();
+  const [claiming, setClaiming] = useState(false);
+  // `done` covers both a new claim and a duplicate: either way there is nothing more to start.
+  const [outcome, setOutcome] = useState<{ done: boolean; tone: 'ok' | 'error'; message: string } | null>(null);
+
+  const getStarted = async () => {
+    if (claiming) return;
+    setClaiming(true);
+    const result = await startClaim(settlement.id);
+    setClaiming(false);
+
+    if (result.status === 'started') {
+      setOutcome({ done: true, tone: 'ok', message: 'Claim started! Track it in your Wallet.' });
+    } else if (result.status === 'duplicate') {
+      setOutcome({ done: true, tone: 'ok', message: result.message });
+    } else {
+      setOutcome({ done: false, tone: 'error', message: result.message });
+    }
+  };
 
   const share = () =>
     // Share sheet is built into React Native; no extra package needed.
@@ -60,8 +80,20 @@ function Ready({ settlement }: { settlement: SettlementDetails }) {
       <View style={[styles.actions, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={styles.actionsInner}>
           <Button label="Tell your friends" variant="secondary" size="lg" icon={require('@/assets/images/settlement/send.svg')} onPress={share} />
-          {/* The claim flow isn't designed yet, so Get Started has no handler. */}
-          <Button label="Get Started" size="lg" style={styles.getStarted} />
+          {outcome && (
+            <Text
+              accessibilityRole={outcome.tone === 'error' ? 'alert' : undefined}
+              style={[styles.outcome, outcome.tone === 'error' && styles.outcomeError]}>
+              {outcome.message}
+            </Text>
+          )}
+          <Button
+            label={claiming ? 'Starting…' : outcome?.done ? 'Claim started' : 'Get Started'}
+            size="lg"
+            onPress={getStarted}
+            disabled={claiming || outcome?.done}
+            style={outcome?.done || claiming ? { ...styles.getStarted, ...styles.disabled } : styles.getStarted}
+          />
         </View>
       </View>
     </>
@@ -101,5 +133,17 @@ const styles = StyleSheet.create({
   },
   getStarted: {
     backgroundColor: Palette.purple600,
+  },
+  disabled: {
+    opacity: 0.6,
+  },
+  outcome: {
+    fontSize: 15,
+    lineHeight: 20,
+    textAlign: 'center',
+    color: Palette.mutedText,
+  },
+  outcomeError: {
+    color: Palette.errorText,
   },
 });
