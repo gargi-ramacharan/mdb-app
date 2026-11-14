@@ -1,14 +1,16 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DevDataToggle } from '@/components/dev-data-toggle';
 import { FeaturedSettlementCard, useFeaturedCardWidth } from '@/components/featured-settlement-card';
 import { HomeHeader } from '@/components/home-header';
+import { HomeMenu, type HomeMenuItem, type MenuAnchor } from '@/components/home-menu';
 import { SettlementRow, type Settlement } from '@/components/settlement-row';
 import { StateMessage } from '@/components/state-message';
 import { Chip } from '@/components/ui/chip';
+import { InfoModal } from '@/components/ui/info-modal';
 import { UpgradeBanner } from '@/components/upgrade-banner';
 import { MaxContentWidth, Palette, Spacing } from '@/constants/theme';
 import { useSettlements } from '@/hooks/use-settlements';
@@ -16,6 +18,19 @@ import type { DataSource } from '@/lib/api';
 import { useProfile } from '@/lib/profile';
 import { prioritizeBrands } from '@/utils/brands';
 import { HOME_FILTERS, filterSettlements, type HomeFilter } from '@/utils/settlements';
+
+const INFO_TITLE = 'How Class Action Lawsuits Work';
+const INFO_MESSAGE = [
+  'Class action lawsuits allow groups of people who have been harmed by a company to sue together. When companies settle these lawsuits, they often pay money to affected customers.',
+  'This app helps you discover and claim your share of these settlements.\nSimply tap on any settlement to learn more and submit your claim if you’re eligible.',
+];
+
+// Privacy Policy, Terms of Use and Contact Support have no destinations yet.
+const PLACEHOLDER_TITLES: Record<Exclude<HomeMenuItem, 'how'>, string> = {
+  privacy: 'Privacy Policy',
+  terms: 'Terms of Use',
+  support: 'Contact Support',
+};
 
 function openSettlement({ id }: Settlement) {
   router.push({ pathname: '/settlement/[id]', params: { id } });
@@ -41,6 +56,34 @@ export default function HomeScreen() {
   const [source, setSource] = useState<DataSource>('live');
   const [filter, setFilter] = useState<HomeFilter>('All');
   const cardWidth = useFeaturedCardWidth();
+
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState<MenuAnchor | null>(null);
+  const [infoVisible, setInfoVisible] = useState(false);
+  // What to do once the popover has finished closing. iOS can't present a second modal (or an alert)
+  // while the first is still dismissing, so there it waits for `onDismiss`; elsewhere it runs at once.
+  const afterMenuClose = useRef<(() => void) | null>(null);
+
+  const openMenu = (anchor: MenuAnchor) => {
+    setMenuAnchor(anchor);
+    setMenuVisible(true);
+  };
+
+  const selectMenuItem = (item: HomeMenuItem) => {
+    setMenuVisible(false);
+    const action =
+      item === 'how'
+        ? () => setInfoVisible(true)
+        : () => Alert.alert(PLACEHOLDER_TITLES[item], 'Coming soon.');
+
+    if (Platform.OS === 'ios') afterMenuClose.current = action;
+    else action();
+  };
+
+  const onMenuDismissed = () => {
+    afterMenuClose.current?.();
+    afterMenuClose.current = null;
+  };
   const { state, retry } = useSettlements(source);
 
   // The user's onboarding brands come first; with none (or no matches) everything shows as before.
@@ -52,7 +95,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.screen}>
-      <HomeHeader />
+      <HomeHeader onMenuPress={openMenu} />
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -130,6 +173,15 @@ export default function HomeScreen() {
 
         <DevDataToggle value={source} onChange={setSource} />
       </ScrollView>
+
+      <HomeMenu
+        visible={menuVisible}
+        anchor={menuAnchor}
+        onSelect={selectMenuItem}
+        onClose={() => setMenuVisible(false)}
+        onDismiss={onMenuDismissed}
+      />
+      <InfoModal visible={infoVisible} title={INFO_TITLE} message={INFO_MESSAGE} onClose={() => setInfoVisible(false)} />
     </View>
   );
 }

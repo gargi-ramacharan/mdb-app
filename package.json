@@ -44,7 +44,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "seed": "tsx backend/seed.ts"
+    "seed": "tsx backend/seed.ts",
+    "scrape": "tsx backend/scraper.ts"
   },
   "private": true
 }

@@ -96,7 +96,7 @@ function toDetails(row: SettlementRow): SettlementDetails {
   const headline =
     row.payout_min != null && row.payout_max == null
       ? `claim at least $${row.payout_min.toLocaleString('en-US')}`
-      : `claim ${row.payout_label ?? ''}`.trim();
+      : `claim ${(row.payout_label ?? '').replace(/^Up to/, 'up to')}`.trim();
 
   return { ...toSettlement(row), headline, title: row.title, summary, description: paragraphs };
 }

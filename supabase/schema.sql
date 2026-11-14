@@ -19,8 +19,12 @@ create table if not exists public.settlements (
   claims_filed   integer not null default 0,
   claims_total   integer not null default 0,
   logo_url       text,
+  source_url     text,                     -- page the row was scraped from (null for seeded rows)
   unique (brand_key, title)
 );
+
+-- For databases created before source_url existed (create table above skips an existing table)
+alter table public.settlements add column if not exists source_url text;
 
 create table if not exists public.profiles (
   id             uuid primary key references auth.users (id) on delete cascade,

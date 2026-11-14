@@ -1,7 +1,9 @@
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRef } from 'react';
+import { Pressable, StyleSheet, Text, View, type HostInstance } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import type { MenuAnchor } from '@/components/home-menu';
 import { Palette } from '@/constants/theme';
 
 type Props = {
@@ -10,12 +12,21 @@ type Props = {
   titleSize?: number;
   /** Hide the menu button (the Wallet header has none). */
   showMenu?: boolean;
-  onMenuPress?: () => void;
+  /** Called with the button's on-screen position, so a popover can be placed under it. */
+  onMenuPress?: (anchor: MenuAnchor) => void;
 };
 
 /** Top bar: logo, centered title, optional menu button. Pads for the status bar. */
 export function HomeHeader({ title = 'Settlements', titleSize = 17, showMenu = true, onMenuPress }: Props) {
   const insets = useSafeAreaInsets();
+  const menuRef = useRef<HostInstance>(null);
+
+  const pressMenu = () => {
+    if (!onMenuPress) return;
+    // Report where the button is; if it can't be measured, still open the menu from a default spot.
+    if (!menuRef.current) return onMenuPress({ x: 0, y: 85, width: 35, height: 35 });
+    menuRef.current.measureInWindow((x, y, width, height) => onMenuPress({ x, y, width, height }));
+  };
 
   return (
     // Figma leaves 18px of screen background between the status bar and the white header.
@@ -34,7 +45,7 @@ export function HomeHeader({ title = 'Settlements', titleSize = 17, showMenu = t
         </Text>
         <View style={[styles.side, styles.sideEnd]}>
           {showMenu && (
-            <Pressable accessibilityRole="button" accessibilityLabel="Menu" onPress={onMenuPress}>
+            <Pressable ref={menuRef} accessibilityRole="button" accessibilityLabel="Menu" onPress={pressMenu}>
               <Image
                 source={require('@/assets/images/home/menu-button.svg')}
                 style={styles.menu}
