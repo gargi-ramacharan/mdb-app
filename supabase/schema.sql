@@ -26,8 +26,12 @@ create table if not exists public.profiles (
   id             uuid primary key references auth.users (id) on delete cascade,
   brands         text[] not null default '{}',
   payout_method  text,
-  onboarded      boolean not null default false
+  onboarded      boolean not null default false,
+  paywall_seen   boolean not null default false  -- true once the user has left the paywall / offer
 );
+
+-- For databases created before paywall_seen existed (create table above skips an existing table)
+alter table public.profiles add column if not exists paywall_seen boolean not null default false;
 
 create table if not exists public.claims (
   id             uuid primary key default gen_random_uuid(),
@@ -65,7 +69,8 @@ drop policy if exists "settlements_select" on public.settlements;
 create policy "settlements_select" on public.settlements
   for select to authenticated using (true);
 
--- profiles: own row only; select + insert (no update/delete from clients)
+-- profiles: own row only; select + insert + update (no delete from clients).
+-- Update is needed by onboarding (brands, payout method, onboarded) and the dev "Reset onboarding".
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own" on public.profiles
   for select to authenticated using (id = (select auth.uid()));
@@ -73,6 +78,12 @@ create policy "profiles_select_own" on public.profiles
 drop policy if exists "profiles_insert_own" on public.profiles;
 create policy "profiles_insert_own" on public.profiles
   for insert to authenticated with check (id = (select auth.uid()));
+
+drop policy if exists "profiles_update_own" on public.profiles;
+create policy "profiles_update_own" on public.profiles
+  for update to authenticated
+  using (id = (select auth.uid()))
+  with check (id = (select auth.uid()));
 
 -- claims: own rows only; select + insert; no update/delete.
 -- Inserts must start at the default status so a client can't self-award 'paid'.

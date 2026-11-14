@@ -3,10 +3,10 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { formatDue } from '@/components/settlement-row';
 import { Badge } from '@/components/ui/badge';
+import { BrandAvatar } from '@/components/ui/brand-avatar';
 import { Palette } from '@/constants/theme';
 import type { SettlementDetails } from '@/data/placeholder';
 
-const companyLogo = require('@/assets/images/settlement/company-logo.png');
 const calendarIcon = require('@/assets/images/settlement/calendar.svg');
 
 /** The scrollable body of the Settlement Details screen. */
@@ -14,7 +14,7 @@ export function SettlementDetailsContent({ settlement }: { settlement: Settlemen
   return (
     <View style={styles.container}>
       <View style={styles.hero}>
-        <Image source={companyLogo} style={styles.logo} contentFit="cover" accessibilityLabel={settlement.company} />
+        <BrandAvatar name={settlement.company} size={67} radius={8} />
         <Text style={styles.headline}>{settlement.headline}</Text>
         <Text style={styles.company}>{settlement.company}</Text>
       </View>
@@ -55,19 +55,13 @@ export function SettlementDetailsContent({ settlement }: { settlement: Settlemen
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 22,
-    paddingTop: 56,
+    paddingTop: 28,
     paddingBottom: 32,
     gap: 25,
   },
   hero: {
     alignItems: 'center',
-    gap: 18,
-  },
-  logo: {
-    width: 67,
-    height: 67,
-    borderRadius: 8,
-    marginBottom: 4,
+    gap: 14,
   },
   headline: {
     fontSize: 36,

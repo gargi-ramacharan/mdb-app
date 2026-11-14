@@ -40,10 +40,18 @@ export function SettlementRow({ settlement, onPress, onClaim }: Props) {
 
         <View style={styles.details}>
           <View style={styles.titleLine}>
-            <Text style={styles.amount}>{settlement.amount}</Text>
-            {settlement.badge && <Badge label={settlement.badge.label} tone={settlement.badge.tone} />}
+            <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+              {settlement.amount}
+            </Text>
+            {settlement.badge && (
+              <View style={styles.badge}>
+                <Badge label={settlement.badge.label} tone={settlement.badge.tone} />
+              </View>
+            )}
           </View>
-          <Text style={styles.due}>{formatDue(settlement.dueInDays)}</Text>
+          <Text style={styles.due} numberOfLines={1}>
+            {formatDue(settlement.dueInDays)}
+          </Text>
         </View>
       </Pressable>
 
@@ -57,21 +65,23 @@ const styles = StyleSheet.create({
     height: 79,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 19,
-    gap: 15,
+    paddingHorizontal: 16,
+    gap: 12,
   },
   info: {
     flex: 1,
+    minWidth: 0,
     height: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 15,
+    gap: 12,
   },
   pressed: {
     opacity: 0.7,
   },
   details: {
     flex: 1,
+    minWidth: 0,
     gap: 4,
   },
   titleLine: {
@@ -80,6 +90,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   amount: {
+    flexShrink: 1,
     fontSize: 20,
     lineHeight: 28,
     fontWeight: '700',
@@ -91,7 +102,11 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: Palette.neutralText,
   },
+  badge: {
+    flexShrink: 0,
+  },
+  // Natural width, so the label's room isn't taken from the amount and badge.
   claim: {
-    width: 78,
+    flexShrink: 0,
   },
 });

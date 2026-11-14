@@ -13,6 +13,8 @@ import { UpgradeBanner } from '@/components/upgrade-banner';
 import { MaxContentWidth, Palette, Spacing } from '@/constants/theme';
 import { useSettlements } from '@/hooks/use-settlements';
 import type { DataSource } from '@/lib/api';
+import { useProfile } from '@/lib/profile';
+import { prioritizeBrands } from '@/utils/brands';
 import { HOME_FILTERS, filterSettlements, type HomeFilter } from '@/utils/settlements';
 
 function openSettlement({ id }: Settlement) {
@@ -41,8 +43,12 @@ export default function HomeScreen() {
   const cardWidth = useFeaturedCardWidth();
   const { state, retry } = useSettlements(source);
 
-  const featured = state.status === 'ready' ? state.featured : [];
-  const visible = state.status === 'ready' ? filterSettlements(state.settlements, filter) : [];
+  // The user's onboarding brands come first; with none (or no matches) everything shows as before.
+  const { state: profile } = useProfile();
+  const myBrands = profile.status === 'ready' ? profile.brands : [];
+
+  const featured = state.status === 'ready' ? prioritizeBrands(state.featured, myBrands) : [];
+  const visible = state.status === 'ready' ? prioritizeBrands(filterSettlements(state.settlements, filter), myBrands) : [];
 
   return (
     <View style={styles.screen}>
@@ -130,6 +136,7 @@ export default function HomeScreen() {
 
 const PAGE_PADDING = 20;
 const CARD_GAP = 17;
+const SHADOW_ROOM = 12;
 
 const styles = StyleSheet.create({
   screen: {
@@ -187,14 +194,14 @@ const styles = StyleSheet.create({
     marginHorizontal: -PAGE_PADDING,
     flexGrow: 0,
   },
-  // The cards' scroll view pads 4px top/bottom so their shadow isn't clipped; cancel it out so
-  // the spacing around the cards still matches the design.
+  // A horizontal ScrollView clips to its bounds, so it pads SHADOW_ROOM top/bottom to keep the card
+  // shadow from being cut off; the negative margin cancels it so the 16px rhythm is unchanged.
   featuredCarousel: {
-    marginVertical: -4,
+    marginVertical: -SHADOW_ROOM,
   },
   carouselContent: {
     paddingHorizontal: PAGE_PADDING,
-    paddingVertical: 4, // room for the card shadow
+    paddingVertical: SHADOW_ROOM,
     gap: CARD_GAP,
   },
   chips: {

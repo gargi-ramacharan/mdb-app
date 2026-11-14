@@ -197,3 +197,25 @@ export async function fetchForms(source: DataSource): Promise<Form[]> {
   if (error) throw error;
   return ((data ?? []) as unknown as FormRow[]).map(toForm);
 }
+
+/**
+ * Onboarding's "$X claimable": the most the selected brands' open settlements could pay out
+ * (`payout_max`, or `payout_min` for uncapped ones). Falls back to a flat estimate per brand when the
+ * table has nothing for them (e.g. before seeding), so the result screen is never "$0".
+ */
+export async function fetchClaimable(brandKeys: string[]): Promise<number> {
+  const fallback = brandKeys.length * 50;
+  try {
+    await sessionReady;
+    const { data, error } = await supabase
+      .from('settlements')
+      .select('payout_min, payout_max')
+      .in('brand_key', brandKeys);
+    if (error) throw error;
+    const rows = (data ?? []) as { payout_min: number | null; payout_max: number | null }[];
+    const total = rows.reduce((sum, r) => sum + (r.payout_max ?? r.payout_min ?? 0), 0);
+    return total > 0 ? total : fallback;
+  } catch {
+    return fallback;
+  }
+}

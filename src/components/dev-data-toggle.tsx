@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Chip } from '@/components/ui/chip';
 import { Palette } from '@/constants/theme';
+import { useDevMode } from '@/hooks/use-dev-mode';
+import { useProfile } from '@/lib/profile';
 import type { DataSource } from '@/lib/api';
 
 const OPTIONS: { label: string; value: DataSource }[] = [
@@ -13,7 +16,8 @@ const OPTIONS: { label: string; value: DataSource }[] = [
 
 /**
  * Developer-only switch for the data source: `Live` is Supabase, the rest are placeholder data
- * or a forced empty / error, so every state can be checked. Renders nothing in production builds.
+ * or a forced empty / error, so every state can be checked. Renders nothing unless `__DEV__` and
+ * the app was opened with a `?dev` flag (see `useDevMode`).
  */
 export function DevDataToggle({
   value,
@@ -22,7 +26,20 @@ export function DevDataToggle({
   value: DataSource;
   onChange: (value: DataSource) => void;
 }) {
-  if (!__DEV__) return null;
+  const devMode = useDevMode();
+  const { resetOnboarding } = useProfile();
+  const [resetting, setResetting] = useState(false);
+  if (!devMode) return null;
+
+  // Clears the saved answers and `onboarded`; the root layout then sends you back to onboarding.
+  const reset = async () => {
+    setResetting(true);
+    try {
+      await resetOnboarding();
+    } catch {
+      setResetting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -36,6 +53,7 @@ export function DevDataToggle({
             onPress={() => onChange(option.value)}
           />
         ))}
+        <Chip label={resetting ? 'Resetting…' : 'Reset onboarding'} onPress={resetting ? undefined : reset} />
       </View>
     </View>
   );
@@ -54,6 +72,7 @@ const styles = StyleSheet.create({
   },
   options: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 6,
   },
 });
